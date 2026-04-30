@@ -1,0 +1,29 @@
+body {
+  text-align: center;
+  font-family: Arial;
+  background: #eef3ef;
+}
+
+.container {
+  margin-top: 80px;
+}
+
+input {
+  padding: 10px;
+  width: 250px;
+}
+
+button {
+  padding: 10px 15px;
+  margin-left: 10px;
+}
+
+#result {
+  margin-top: 30px;
+}
+.film-img {
+  width: 260px;
+  border-radius: 18px;
+  margin: 20px 0;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
