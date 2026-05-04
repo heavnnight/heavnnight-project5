@@ -1,23 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Ghibli Oracle</title>
+  <title>Ghibli Mood Finder</title>
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-  <div class="container">
-    <h1>Ghibli Mood Oracle</h1>
+  <!-- 🔥 اختبار الصورة (مؤقت) -->
+  <img src="hero.png" width="200">
 
-    <textarea id="input" placeholder="How do you feel?"></textarea>
-    <br>
-    <button onclick="run()">Reveal</button>
+  <!-- 🔥 Hero -->
+  <div class="hero">
+    <div class="hero-overlay">
 
-    <div id="result"></div>
+      <h1>Ghibli Mood Finder</h1>
+
+      <p>
+        Tell me what you feel, and I’ll find you a world to escape into.
+      </p>
+
+      <div class="search-box">
+        <input id="input" placeholder="I want something magical, sad, comforting..." />
+        <button onclick="run()">Find My Film</button>
+      </div>
+
+    </div>
   </div>
 
+  <div id="result"></div>
+
   <script src="script.js"></script>
+
 </body>
 </html>
