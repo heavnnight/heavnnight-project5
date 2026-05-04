@@ -1,85 +1,112 @@
-async function run() {
-  let text = document.getElementById("input").value.toLowerCase().trim();
-  let resultDiv = document.getElementById("result");
+const YOUTUBE_KEY = "AIzaSyBB5XEYzDfNOd6jcpQhnrRgKxxCZumIgqg";
 
-  if (text === "") {
+async function run() {
+  const userText = document.getElementById("input").value.toLowerCase().trim();
+  const resultDiv = document.getElementById("result");
+
+  if (!userText) {
     resultDiv.innerHTML = "Write something first.";
     return;
   }
 
-  // 🌿 worlds + كلمات
-  let worlds = [
-    {
-      title: "My Neighbor Totoro",
-      words: ["calm", "quiet", "nature", "peace", "soft", "forest", "home"]
-    },
-    {
-      title: "Spirited Away",
-      words: ["magic", "dream", "lost", "strange", "mystery", "spirit"]
-    },
-    {
-      title: "Princess Mononoke",
-      words: ["strong", "wild", "angry", "war", "fight", "power"]
-    },
-    {
-      title: "Kiki's Delivery Service",
-      words: ["city", "busy", "work", "independent", "creative", "young"]
-    },
-    {
-      title: "Ponyo",
-      words: ["ocean", "sea", "love", "child", "fun", "water"]
-    }
-  ];
-
-  // 🧠 نحسب أفضل تطابق
-  let bestMatch = worlds[0];
-  let highestScore = 0;
-
-  worlds.forEach(world => {
-    let score = 0;
-
-    world.words.forEach(word => {
-      if (text.includes(word)) {
-        score++;
-      }
-    });
-
-    if (score > highestScore) {
-      highestScore = score;
-      bestMatch = world;
-    }
-  });
-
-  let filmName = bestMatch.title;
-
   resultDiv.innerHTML = "Loading...";
 
   try {
-    let res = await fetch("https://ghibliapi.vercel.app/films");
-    let films = await res.json();
+    const res = await fetch("https://ghibliapi.vercel.app/films");
+    const films = await res.json();
 
-    let film = films.find(f => f.title === filmName);
+    // 🧠 AI يفهم المستخدم
+    const keywords = await analyzeWithAI(userText);
 
-    if (!film) {
-      resultDiv.innerHTML = "Film not found.";
-      return;
-    }
+    // 🎬 اختيار الفيلم
+    const match = pickFilmSmart(films, keywords);
 
-    // 🎬 عرض النتيجة + الصورة
+    document.body.style.backgroundImage = `url(${match.movie_banner})`;
+
+    const videoId = await getTrailer(match.title);
+
     resultDiv.innerHTML = `
-      <h2>You belong in: ${film.title}</h2>
+      <div class="film-card">
 
-      <img class="film-img" src="${film.image}" alt="${film.title} poster">
+        <div class="film-info">
+          <img class="film-img" src="${match.image}">
+          <h2>${match.title}</h2>
 
-      <p>${film.description}</p>
+          <p>${match.description}</p>
 
-      <p><strong>Director:</strong> ${film.director}</p>
-      <p><strong>Year:</strong> ${film.release_date}</p>
-      <p><strong>Score:</strong> ${film.rt_score}</p>
+          <p><strong>Director:</strong> ${match.director}</p>
+          <p><strong>Year:</strong> ${match.release_date}</p>
+          <p><strong>Rotten Tomatoes:</strong> ${match.rt_score}%</p>
+        </div>
+
+        <div class="film-trailer">
+          ${
+            videoId
+              ? `<iframe class="trailer" src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>`
+              : `<p>Trailer not found</p>`
+          }
+        </div>
+
+      </div>
     `;
 
   } catch (error) {
     console.log(error);
     resultDiv.innerHTML = "Error loading data.";
+  }
+}
+
+
+// 🔥 AI
+async function analyzeWithAI(userText) {
+  const res = await fetch("http://localhost:3000/analyze", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ text: userText })
+  });
+
+  const data = await res.json();
+
+  return data.keywords;
+}
+
+
+// 🎬 اختيار الفيلم (بدون score)
+function pickFilmSmart(films, keywords) {
+  const words = keywords.split(",").map(w => w.trim());
+
+  const filtered = films.filter(film => {
+    const text = (film.title + " " + film.description).toLowerCase();
+
+    return words.some(word => text.includes(word));
+  });
+
+  if (filtered.length === 0) {
+    return films[Math.floor(Math.random() * films.length)];
+  }
+
+  return filtered[Math.floor(Math.random() * filtered.length)];
+}
+
+
+// 🎥 التريلر
+async function getTrailer(title) {
+  try {
+    const query = encodeURIComponent(`${title} Studio Ghibli trailer`);
+
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${query}&type=video&maxResults=1&key=${YOUTUBE_KEY}`;
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!data.items || data.items.length === 0) return null;
+
+    return data.items[0].id.videoId;
+
+  } catch (e) {
+    console.log(e);
+    return null;
   }
 }

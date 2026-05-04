@@ -1,29 +1,19 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Ghibli World</title>
+  <meta charset="UTF-8">
+  <title>Ghibli Oracle</title>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
   <div class="container">
-    <h1>Which Ghibli World Do You Belong In?</h1>
+    <h1>Ghibli Mood Oracle</h1>
 
-    <p class="intro">
-      Think about your current mood, energy, or life right now.
-      Write a few words that describe your vibe.
-    </p>
-
-    <input 
-      id="input" 
-      placeholder="calm, dreamy, nature..." 
-    />
-
-    <button onclick="run()">Find My World</button>
-
-    <p class="examples">
-      Examples: calm, quiet, nature / dreamy, magic, lost / strong, wild, forest / city, busy, independent
-    </p>
+    <textarea id="input" placeholder="How do you feel?"></textarea>
+    <br>
+    <button onclick="run()">Reveal</button>
 
     <div id="result"></div>
   </div>
