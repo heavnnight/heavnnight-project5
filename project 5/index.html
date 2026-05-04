@@ -1,34 +1,30 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Ghibli Mood Finder</title>
+  <title>Find Your Ghibli World</title>
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-  <!-- 🔥 اختبار الصورة (مؤقت) -->
-  <img src="hero.png" width="200">
-
-  <!-- 🔥 Hero -->
   <div class="hero">
     <div class="hero-overlay">
+      <div class="hero-content">
 
-      <h1>Ghibli Mood Finder</h1>
+        <h1>Find Your Ghibli World</h1>
 
-      <p>
-        Tell me what you feel, and I’ll find you a world to escape into.
-      </p>
+        <p>
+  Tell me a little about yourself in this moment and I’ll  reveal the Ghibli world you belong to
+        </p>
 
-      <div class="search-box">
-        <input id="input" placeholder="I want something magical, sad, comforting..." />
-        <button onclick="run()">Find My Film</button>
+        <div class="search-box">
+          <input id="input" placeholder="Describe yourself" />
+          <button onclick="goToResult()">My World</button>
+        </div>
+
       </div>
-
     </div>
   </div>
-
-  <div id="result"></div>
 
   <script src="script.js"></script>
 

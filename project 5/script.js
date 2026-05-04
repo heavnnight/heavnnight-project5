@@ -1,14 +1,29 @@
 const YOUTUBE_KEY = "AIzaSyBB5XEYzDfNOd6jcpQhnrRgKxxCZumIgqg";
 
-async function run() {
-  const userText = document.getElementById("input").value.toLowerCase().trim();
-  const resultDiv = document.getElementById("result");
+function goToResult() {
+  const input = document.getElementById("input");
+  const userText = input.value.trim();
 
   if (!userText) {
-    resultDiv.innerHTML = "Write something first.";
+    alert("Write something first.");
     return;
   }
 
+  window.location.href = "result.html?mood=" + encodeURIComponent(userText);
+}
+
+async function run() {
+  const params = new URLSearchParams(window.location.search);
+  const savedMood = params.get("mood");
+
+  const resultDiv = document.getElementById("result");
+
+  if (!savedMood) {
+    resultDiv.innerHTML = "No mood found. Go back and search first.";
+    return;
+  }
+
+  const userText = savedMood.toLowerCase().trim();
   resultDiv.innerHTML = "Loading...";
 
   try {
@@ -26,11 +41,26 @@ async function run() {
     resultDiv.innerHTML = `
       <div class="film-card">
 
-        <div class="film-info">
+        <div class="film-top">
           <img class="film-img" src="${match.image}" alt="${match.title}">
+
+          <div class="film-trailer">
+            ${
+              videoId
+                ? `<iframe class="trailer" src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>`
+                : `<p>No trailer found.</p>`
+            }
+          </div>
+        </div>
+
+        <div class="film-info">
+
+          <p class="reading">
+            You got ${match.title} world! and it feels like it fits you!
+          </p>
+
           <h2>${match.title}</h2>
 
-          <p><strong>Emotional Category:</strong> ${category}</p>
           <p><strong>Genre:</strong> ${genre}</p>
 
           <p>${match.description}</p>
@@ -38,14 +68,11 @@ async function run() {
           <p><strong>Director:</strong> ${match.director}</p>
           <p><strong>Year:</strong> ${match.release_date}</p>
           <p><strong>Rotten Tomatoes:</strong> ${match.rt_score}%</p>
-        </div>
 
-        <div class="film-trailer">
-          ${
-            videoId
-              ? `<iframe class="trailer" src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>`
-              : `<p>Trailer not found</p>`
-          }
+          <button class="another-btn" onclick="run()">
+            Read me again
+          </button>
+
         </div>
 
       </div>
@@ -57,52 +84,71 @@ async function run() {
   }
 }
 
-
-// 🧠 يفهم المستخدم
 function detectEmotionalCategory(text) {
-  if (text.includes("make me cry") || text.includes("sad movie")) return "Heartbreaking";
-  if (text.includes("happy") || text.includes("cheer") || text.includes("fun")) return "Comforting";
-  if (text.includes("scared") || text.includes("anxious")) return "Calming";
-  if (text.includes("nostalgic") || text.includes("memory")) return "Nostalgic";
-  if (text.includes("magic") || text.includes("dream")) return "Magical";
-  if (text.includes("adventure") || text.includes("explore")) return "Adventurous";
-  if (text.includes("dark") || text.includes("intense")) return "Intense";
-
-  return "Surprise";
-}
-
-
-// 🎬 يختار فيلم
-function pickFilmByCategory(films, category) {
-  const rules = {
-    Heartbreaking: ["war", "death", "loss", "struggle"],
-    Comforting: ["family", "love", "friend", "young"],
-    Calming: ["quiet", "home", "country"],
-    Nostalgic: ["childhood", "memory"],
-    Magical: ["spirit", "magic", "strange"],
-    Adventurous: ["journey", "world", "travel"],
-    Intense: ["war", "battle", "fight"]
+  const categories = {
+    Soft: ["calm", "peaceful", "soft", "quiet", "safe", "tired", "comfort", "cozy"],
+    Lost: ["lost", "confused", "empty", "alone", "stuck", "numb"],
+    Emotional: ["sad", "cry", "crying", "heartbroken", "hurt", "overwhelmed"],
+    Magical: ["magic", "dream", "fantasy", "spirit", "wonder"],
+    Adventurous: ["adventure", "explore", "journey", "escape", "free"],
+    Intense: ["angry", "chaotic", "intense", "dark", "fight", "war"],
+    Nostalgic: ["nostalgic", "memory", "childhood", "past", "miss"]
   };
 
-  const keywords = rules[category] || ["world"];
+  let bestCategory = "Surprise";
+  let bestScore = 0;
 
-  const filtered = films.filter(film => {
-    const text = `${film.title} ${film.description}`.toLowerCase();
-    return keywords.some(k => text.includes(k));
-  });
+  for (let category in categories) {
+    let score = 0;
 
-  if (filtered.length === 0) {
-    return films[Math.floor(Math.random() * films.length)];
+    categories[category].forEach(word => {
+      if (text.includes(word)) score++;
+    });
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestCategory = category;
+    }
   }
 
-  return filtered[Math.floor(Math.random() * filtered.length)];
+  return bestCategory;
 }
 
+function pickFilmByCategory(films, category) {
+  const worlds = {
+    Soft: ["family", "home", "young", "love"],
+    Lost: ["world", "life", "strange"],
+    Emotional: ["loss", "war", "death"],
+    Magical: ["magic", "spirit", "witch"],
+    Adventurous: ["journey", "travel", "world"],
+    Intense: ["battle", "fight", "war"],
+    Nostalgic: ["memory", "childhood", "family"],
+    Surprise: ["world", "life"]
+  };
 
-// 🎭 Genre بسيط من الوصف
+  const keywords = worlds[category] || worlds.Surprise;
+
+  let filtered = films.filter(film => {
+    const text = `${film.title} ${film.description}`.toLowerCase();
+    return keywords.some(word => text.includes(word));
+  });
+
+  if (filtered.length === 0) filtered = films;
+
+  const lastFilmId = localStorage.getItem("lastFilmId");
+  let choices = filtered.filter(film => film.id !== lastFilmId);
+
+  if (choices.length === 0) choices = filtered;
+
+  const picked = choices[Math.floor(Math.random() * choices.length)];
+
+  localStorage.setItem("lastFilmId", picked.id);
+
+  return picked;
+}
+
 function getSimpleGenre(film) {
-  const text = (film.title + " " + film.description).toLowerCase();
-
+  const text = `${film.title} ${film.description}`.toLowerCase();
   let genres = [];
 
   if (text.includes("war")) genres.push("War");
@@ -117,8 +163,6 @@ function getSimpleGenre(film) {
   return genres.join(", ");
 }
 
-
-// 🎥 التريلر
 async function getTrailer(title) {
   try {
     const query = encodeURIComponent(`${title} Studio Ghibli trailer`);
@@ -131,8 +175,8 @@ async function getTrailer(title) {
 
     return data.items[0].id.videoId;
 
-  } catch (e) {
-    console.log(e);
+  } catch (error) {
+    console.log(error);
     return null;
   }
 }
